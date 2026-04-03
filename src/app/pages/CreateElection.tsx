@@ -6,6 +6,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import { toast } from 'sonner';
 import { PlusCircle, Trash2, ArrowLeft, Calendar } from 'lucide-react';
 
@@ -297,12 +298,29 @@ export default function CreateElection() {
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
-                  <Label>Image URL</Label>
-                  <Input
-                    placeholder="https://example.com/photo.jpg"
-                    value={currentCandidate.imageUrl}
-                    onChange={(e) => setCurrentCandidate({ ...currentCandidate, imageUrl: e.target.value })}
-                  />
+                  <Label>Image URL (Optional)</Label>
+                  <div className="flex gap-3 items-start">
+                    <Avatar className="w-16 h-16 shrink-0">
+                      <AvatarImage
+                        src={currentCandidate.imageUrl}
+                        alt={currentCandidate.name || 'Preview'}
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="bg-primary text-primary-foreground text-lg">
+                        {currentCandidate.name ? currentCandidate.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : '?'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <Input
+                        placeholder="https://example.com/photo.jpg or leave empty"
+                        value={currentCandidate.imageUrl}
+                        onChange={(e) => setCurrentCandidate({ ...currentCandidate, imageUrl: e.target.value })}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Enter image URL or leave empty to show candidate initials
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-2 md:col-span-2">
@@ -333,11 +351,23 @@ export default function CreateElection() {
                         key={index}
                         className="flex items-center justify-between p-3 border rounded-lg bg-white"
                       >
-                        <div>
-                          <p className="font-semibold">{candidate.name}</p>
-                          <p className="text-sm text-gray-600">
-                            {candidate.position} • {candidate.department} • {candidate.year}
-                          </p>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="w-12 h-12">
+                            <AvatarImage
+                              src={candidate.imageUrl}
+                              alt={candidate.name}
+                              className="object-cover"
+                            />
+                            <AvatarFallback className="bg-primary text-primary-foreground">
+                              {candidate.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-semibold">{candidate.name}</p>
+                            <p className="text-sm text-gray-600">
+                              {candidate.position} • {candidate.department} • {candidate.year}
+                            </p>
+                          </div>
                         </div>
                         <Button
                           type="button"
