@@ -10,6 +10,7 @@ import CreateElection from './pages/CreateElection';
 import RegisterVoter from './pages/RegisterVoter';
 import ManageVoters from './pages/ManageVoters';
 import MonitorVotes from './pages/MonitorVotes';
+import ViewAllData from './pages/ViewAllData';
 
 export const router = createBrowserRouter([
   {
@@ -55,5 +56,9 @@ export const router = createBrowserRouter([
   {
     path: '/admin/monitor',
     Component: MonitorVotes,
+  },
+  {
+    path: '/admin/data',
+    Component: ViewAllData,
   },
 ]);

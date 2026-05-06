@@ -4,16 +4,17 @@ import { useVoting } from '../context/VotingContext';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { toast } from 'sonner';
-import { 
-  LayoutDashboard, 
-  PlusCircle, 
-  Users, 
-  Activity, 
-  BarChart3, 
+import {
+  LayoutDashboard,
+  PlusCircle,
+  Users,
+  Activity,
+  BarChart3,
   LogOut,
   Vote,
   Calendar,
-  UserCheck
+  UserCheck,
+  Database
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -83,6 +84,13 @@ export default function AdminDashboard() {
       icon: Activity,
       color: 'bg-purple-500',
       onClick: () => navigate('/admin/monitor'),
+    },
+    {
+      title: 'View All Data',
+      description: 'Database viewer',
+      icon: Database,
+      color: 'bg-orange-500',
+      onClick: () => navigate('/admin/data'),
     },
   ];
 
@@ -181,7 +189,7 @@ export default function AdminDashboard() {
             {/* Quick Actions */}
             <div>
               <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {quickActions.map((action) => (
                   <Card
                     key={action.title}
