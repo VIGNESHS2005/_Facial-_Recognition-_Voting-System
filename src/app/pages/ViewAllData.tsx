@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { toast } from 'sonner';
 import { ArrowLeft, Database, RefreshCw, Vote, Users, Calendar, Trophy } from 'lucide-react';
+import { ThemeToggle } from '../components/ThemeToggle';
 import type { Election, Candidate, Voter } from '../context/VotingContext';
 
 export default function ViewAllData() {
@@ -63,9 +64,9 @@ export default function ViewAllData() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b shadow-sm">
+      <div className="bg-card border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <Button
             variant="ghost"
@@ -77,16 +78,19 @@ export default function ViewAllData() {
           </Button>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
                 <Database className="h-8 w-8" />
                 Database Viewer
               </h1>
-              <p className="text-gray-600 mt-2">View all stored data in the system</p>
+              <p className="text-muted-foreground mt-2">View all stored data in the system</p>
             </div>
-            <Button onClick={loadAllData} disabled={loading}>
-              <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Button onClick={loadAllData} disabled={loading}>
+                <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -109,7 +113,7 @@ export default function ViewAllData() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-gray-900">{elections.length}</div>
+                  <div className="text-3xl font-bold text-foreground">{elections.length}</div>
                 </CardContent>
               </Card>
 
@@ -121,7 +125,7 @@ export default function ViewAllData() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-gray-900">{getTotalCandidates()}</div>
+                  <div className="text-3xl font-bold text-foreground">{getTotalCandidates()}</div>
                 </CardContent>
               </Card>
 
@@ -133,7 +137,7 @@ export default function ViewAllData() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-gray-900">{voters.length}</div>
+                  <div className="text-3xl font-bold text-foreground">{voters.length}</div>
                 </CardContent>
               </Card>
 
@@ -145,7 +149,7 @@ export default function ViewAllData() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-gray-900">{getTotalVotes()}</div>
+                  <div className="text-3xl font-bold text-foreground">{getTotalVotes()}</div>
                 </CardContent>
               </Card>
             </div>
