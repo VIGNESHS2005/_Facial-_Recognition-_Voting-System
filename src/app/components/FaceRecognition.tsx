@@ -82,7 +82,7 @@ export function FaceRecognition({ onCapture, mode, isLoading }: FaceRecognitionP
       console.log('File selected:', file.name);
       const reader = new FileReader();
       reader.onloadend = () => {
-        const img = new Image();
+        const img = document.createElement('img');
         img.onload = () => {
           const canvas = document.createElement('canvas');
           canvas.width = 320;
