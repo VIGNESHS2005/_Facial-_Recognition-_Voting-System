@@ -253,6 +253,20 @@ app.get('/make-server-89722b6c/elections', async (c) => {
   }
 });
 
+// Manually activate an election (admin override)
+app.post('/make-server-89722b6c/election/:electionId/activate', async (c) => {
+  try {
+    const electionId = c.req.param('electionId');
+    const election = await kv.get(`election:${electionId}`);
+    if (!election) return c.json({ success: false, message: 'Election not found' }, 404);
+    election.status = 'active';
+    await kv.set(`election:${electionId}`, election);
+    return c.json({ success: true, message: 'Election activated' });
+  } catch (error) {
+    return c.json({ success: false, message: `Error: ${error}` }, 500);
+  }
+});
+
 // Get Candidates for Election
 app.get('/make-server-89722b6c/election/:electionId/candidates', async (c) => {
   try {

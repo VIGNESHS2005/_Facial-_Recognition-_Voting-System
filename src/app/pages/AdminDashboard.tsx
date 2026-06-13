@@ -23,7 +23,7 @@ export default function AdminDashboard() {
   const [voters, setVoters] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
-  const { isAdmin, logout, getElections, getVoters } = useVoting();
+  const { isAdmin, logout, getElections, getVoters, activateElection } = useVoting();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -258,14 +258,33 @@ export default function AdminDashboard() {
                           <span className="text-gray-600">Total Votes</span>
                           <span className="font-semibold">{election.totalVotes || 0}</span>
                         </div>
-                        <Button
-                          variant="outline"
-                          className="w-full mt-4"
-                          onClick={() => navigate(`/results/${election.id}`)}
-                        >
-                          <BarChart3 className="mr-2 h-4 w-4" />
-                          View Results
-                        </Button>
+                        <div className="flex gap-2 mt-4">
+                          {election.status === 'upcoming' && (
+                            <Button
+                              variant="default"
+                              className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                              onClick={async () => {
+                                const result = await activateElection(election.id);
+                                if (result.success) {
+                                  toast.success('Election activated!');
+                                  loadDashboardData();
+                                } else {
+                                  toast.error(result.message);
+                                }
+                              }}
+                            >
+                              Activate
+                            </Button>
+                          )}
+                          <Button
+                            variant="outline"
+                            className="flex-1"
+                            onClick={() => navigate(`/results/${election.id}`)}
+                          >
+                            <BarChart3 className="mr-2 h-4 w-4" />
+                            Results
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   ))}

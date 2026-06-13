@@ -102,8 +102,8 @@ export default function CreateElection() {
       const electionResult = await createElection({
         title,
         description,
-        startDate,
-        endDate,
+        startDate: new Date(startDate).toISOString(),
+        endDate: new Date(endDate).toISOString(),
         positions,
       });
       

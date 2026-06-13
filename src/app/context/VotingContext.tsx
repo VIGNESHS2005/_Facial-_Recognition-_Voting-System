@@ -46,6 +46,7 @@ interface VotingContextType {
   logout: () => void;
   createElection: (data: Omit<Election, 'id' | 'status' | 'totalVotes'>) => Promise<{ success: boolean; election?: Election; message: string }>;
   addCandidate: (data: Omit<Candidate, 'id' | 'votes'> & { electionId: string }) => Promise<{ success: boolean; message: string }>;
+  activateElection: (electionId: string) => Promise<{ success: boolean; message: string }>;
   getElections: () => Promise<Election[]>;
   getCandidates: (electionId: string) => Promise<Candidate[]>;
   castVote: (electionId: string, votes: { candidateId: string; position: string }[]) => Promise<{ success: boolean; transactionHash?: string; message: string }>;
@@ -222,6 +223,18 @@ export function VotingProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const activateElection = async (electionId: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await fetch(`${API_URL}/election/${electionId}/activate`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${publicAnonKey}` },
+      });
+      return await response.json();
+    } catch (error) {
+      return { success: false, message: 'Failed to activate election.' };
+    }
+  };
+
   const getElections = async (): Promise<Election[]> => {
     try {
       const response = await fetch(`${API_URL}/elections`, {
@@ -340,6 +353,7 @@ export function VotingProvider({ children }: { children: ReactNode }) {
       verifyOTP,
       logout,
       createElection,
+      activateElection,
       addCandidate,
       getElections,
       getCandidates,

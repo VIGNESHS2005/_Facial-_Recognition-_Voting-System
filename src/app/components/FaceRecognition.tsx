@@ -30,8 +30,8 @@ export function FaceRecognition({ onCapture, mode, isLoading }: FaceRecognitionP
   }, []);
 
   const videoConstraints = {
-    width: 1280,
-    height: 720,
+    width: 320,
+    height: 240,
     facingMode: "user"
   };
 
@@ -82,10 +82,18 @@ export function FaceRecognition({ onCapture, mode, isLoading }: FaceRecognitionP
       console.log('File selected:', file.name);
       const reader = new FileReader();
       reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setImageData(base64String);
-        setCaptured(true);
-        setCaptureMethod('upload');
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 320;
+          canvas.height = 240;
+          canvas.getContext('2d')!.drawImage(img, 0, 0, 320, 240);
+          const compressed = canvas.toDataURL('image/jpeg', 0.7);
+          setImageData(compressed);
+          setCaptured(true);
+          setCaptureMethod('upload');
+        };
+        img.src = reader.result as string;
       };
       reader.readAsDataURL(file);
     }
@@ -105,7 +113,7 @@ export function FaceRecognition({ onCapture, mode, isLoading }: FaceRecognitionP
       return;
     }
 
-    const imageSrc = webcamRef.current.getScreenshot();
+    const imageSrc = webcamRef.current.getScreenshot({ width: 320, height: 240 });
     console.log('Screenshot result:', imageSrc ? 'Success' : 'Failed');
     
     if (imageSrc) {
