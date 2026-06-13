@@ -260,6 +260,10 @@ app.post('/make-server-89722b6c/election/:electionId/activate', async (c) => {
     const election = await kv.get(`election:${electionId}`);
     if (!election) return c.json({ success: false, message: 'Election not found' }, 404);
     election.status = 'active';
+    election.startDate = new Date().toISOString();
+    if (new Date(election.endDate) <= new Date()) {
+      election.endDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    }
     await kv.set(`election:${electionId}`, election);
     return c.json({ success: true, message: 'Election activated' });
   } catch (error) {
@@ -418,6 +422,43 @@ app.get('/make-server-89722b6c/admin/voters', async (c) => {
   } catch (error) {
     console.log('Error fetching voters:', error);
     return c.json({ success: false, message: `Voters fetch error: ${error}` }, 500);
+  }
+});
+
+// Delete a voter by studentId
+app.delete('/make-server-89722b6c/admin/voter/:studentId', async (c) => {
+  try {
+    const studentId = c.req.param('studentId');
+    const voter = await kv.get(`voter:${studentId}`);
+    if (!voter) return c.json({ success: false, message: 'Voter not found' }, 404);
+    await kv.delete(`voter:${studentId}`);
+    const votersList: string[] = (await kv.get('voters:list')) || [];
+    await kv.set('voters:list', votersList.filter(id => id !== studentId));
+    return c.json({ success: true, message: 'Voter deleted successfully' });
+  } catch (error) {
+    return c.json({ success: false, message: `Delete error: ${error}` }, 500);
+  }
+});
+
+// Clear ALL data
+app.post('/make-server-89722b6c/admin/clear-all', async (c) => {
+  try {
+    const votersList: string[] = (await kv.get('voters:list')) || [];
+    for (const id of votersList) await kv.delete(`voter:${id}`);
+    await kv.delete('voters:list');
+
+    const electionsList: string[] = (await kv.get('elections:list')) || [];
+    for (const id of electionsList) {
+      const candidatesList: string[] = (await kv.get(`election:${id}:candidates`)) || [];
+      for (const cid of candidatesList) await kv.delete(`candidate:${cid}`);
+      await kv.delete(`election:${id}:candidates`);
+      await kv.delete(`election:${id}`);
+    }
+    await kv.delete('elections:list');
+
+    return c.json({ success: true, message: 'All data cleared' });
+  } catch (error) {
+    return c.json({ success: false, message: `Clear error: ${error}` }, 500);
   }
 });
 

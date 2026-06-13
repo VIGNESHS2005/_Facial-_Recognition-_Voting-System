@@ -5,7 +5,7 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
-import { ArrowLeft, Users, Search, UserCheck, Mail } from 'lucide-react';
+import { ArrowLeft, Users, Search, UserCheck, Mail, Trash2, AlertTriangle } from 'lucide-react';
 import type { Voter } from '../context/VotingContext';
 
 export default function ManageVoters() {
@@ -13,8 +13,11 @@ export default function ManageVoters() {
   const [filteredVoters, setFilteredVoters] = useState<Voter[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
-  
-  const { isAdmin, getVoters } = useVoting();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [clearing, setClearing] = useState(false);
+
+  const { isAdmin, getVoters, deleteVoter, clearAllData } = useVoting();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,7 +25,6 @@ export default function ManageVoters() {
       navigate('/admin-login');
       return;
     }
-    
     loadVoters();
   }, [isAdmin, navigate]);
 
@@ -56,25 +58,99 @@ export default function ManageVoters() {
     }
   };
 
+  const handleDeleteVoter = async (studentId: string) => {
+    setDeletingId(studentId);
+    try {
+      const result = await deleteVoter(studentId);
+      if (result.success) {
+        toast.success(`Voter ${studentId} deleted`);
+        setVoters(prev => prev.filter(v => v.studentId !== studentId));
+      } else {
+        toast.error(result.message);
+      }
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleClearAll = async () => {
+    setClearing(true);
+    try {
+      const result = await clearAllData();
+      if (result.success) {
+        toast.success('All data cleared successfully');
+        setVoters([]);
+        setFilteredVoters([]);
+        setShowClearConfirm(false);
+      } else {
+        toast.error(result.message);
+      }
+    } finally {
+      setClearing(false);
+    }
+  };
+
   const getVotedElectionsCount = (voter: Voter) => {
     return voter.hasVoted ? Object.keys(voter.hasVoted).length : 0;
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+      {/* Clear All Confirmation Modal */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900">Clear All Data?</h2>
+            </div>
+            <p className="text-gray-600 mb-6">
+              This will permanently delete <strong>all voters, elections, candidates, and votes</strong>. This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowClearConfirm(false)}
+                disabled={clearing}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                onClick={handleClearAll}
+                disabled={clearing}
+              >
+                {clearing ? 'Clearing...' : 'Yes, Clear All'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-white border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/admin/dashboard')}
-            className="mb-4"
-          >
+          <Button variant="ghost" onClick={() => navigate('/admin/dashboard')} className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Dashboard
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900">Manage Voters</h1>
-          <p className="text-gray-600 mt-2">View and manage registered voters</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Manage Voters</h1>
+              <p className="text-gray-600 mt-2">View, search, and remove registered voters</p>
+            </div>
+            <Button
+              variant="outline"
+              className="border-red-300 text-red-600 hover:bg-red-50"
+              onClick={() => setShowClearConfirm(true)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Clear All Data
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -90,20 +166,15 @@ export default function ManageVoters() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600">
-                    Total Registered Voters
-                  </CardTitle>
+                  <CardTitle className="text-sm font-medium text-gray-600">Total Registered Voters</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-gray-900">{voters.length}</div>
                 </CardContent>
               </Card>
-
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600">
-                    Voters Who Have Voted
-                  </CardTitle>
+                  <CardTitle className="text-sm font-medium text-gray-600">Voters Who Have Voted</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-gray-900">
@@ -111,12 +182,9 @@ export default function ManageVoters() {
                   </div>
                 </CardContent>
               </Card>
-
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-gray-600">
-                    Voters Not Voted Yet
-                  </CardTitle>
+                  <CardTitle className="text-sm font-medium text-gray-600">Voters Not Voted Yet</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-gray-900">
@@ -126,14 +194,14 @@ export default function ManageVoters() {
               </Card>
             </div>
 
-            {/* Search */}
+            {/* Search + Table */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
                   Registered Voters
                 </CardTitle>
-                <CardDescription>Search and view all registered voters</CardDescription>
+                <CardDescription>Search and manage all registered voters</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="relative">
@@ -153,9 +221,7 @@ export default function ManageVoters() {
                       {searchQuery ? 'No voters found' : 'No registered voters'}
                     </h3>
                     <p className="text-gray-600">
-                      {searchQuery
-                        ? 'Try adjusting your search query'
-                        : 'Voters will appear here once they register'}
+                      {searchQuery ? 'Try adjusting your search query' : 'Voters will appear here once they register'}
                     </p>
                   </div>
                 ) : (
@@ -163,18 +229,11 @@ export default function ManageVoters() {
                     <table className="w-full">
                       <thead className="bg-gray-50 border-b">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Student
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Contact
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Department & Year
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Voting Status
-                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department & Year</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Voting Status</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -186,9 +245,7 @@ export default function ManageVoters() {
                                   <UserCheck className="h-5 w-5 text-white" />
                                 </div>
                                 <div className="ml-4">
-                                  <div className="text-sm font-medium text-gray-900">
-                                    {voter.name}
-                                  </div>
+                                  <div className="text-sm font-medium text-gray-900">{voter.name}</div>
                                   <div className="text-sm text-gray-500">{voter.studentId}</div>
                                 </div>
                               </div>
@@ -205,15 +262,25 @@ export default function ManageVoters() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm">
-                                <div className="font-medium text-gray-900">
-                                  {getVotedElectionsCount(voter)} elections voted
-                                </div>
+                                <div className="font-medium text-gray-900">{getVotedElectionsCount(voter)} elections voted</div>
                                 {voter.registeredAt && (
                                   <div className="text-xs text-gray-500">
                                     Registered: {new Date(voter.registeredAt).toLocaleDateString()}
                                   </div>
                                 )}
                               </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="border-red-300 text-red-600 hover:bg-red-50"
+                                disabled={deletingId === voter.studentId}
+                                onClick={() => handleDeleteVoter(voter.studentId)}
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                {deletingId === voter.studentId ? 'Deleting...' : 'Delete'}
+                              </Button>
                             </td>
                           </tr>
                         ))}

@@ -128,13 +128,21 @@ export default function ResultsPage() {
                           }`}
                         >
                           <div className="flex items-start gap-4">
-                            {candidate.imageUrl && (
-                              <img
-                                src={candidate.imageUrl}
-                                alt={candidate.name}
-                                className="w-16 h-16 rounded-full object-cover"
-                              />
-                            )}
+                            <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center shrink-0">
+                              {candidate.imageUrl ? (
+                                <img
+                                  src={candidate.imageUrl}
+                                  alt={candidate.name}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                    e.currentTarget.parentElement!.innerHTML = `<span class="text-xl font-bold text-gray-500">${candidate.name.charAt(0).toUpperCase()}</span>`;
+                                  }}
+                                />
+                              ) : (
+                                <span className="text-xl font-bold text-gray-500">{candidate.name.charAt(0).toUpperCase()}</span>
+                              )}
+                            </div>
                             
                             <div className="flex-1">
                               <div className="flex items-start justify-between mb-2">

@@ -219,13 +219,21 @@ export default function VotingPage() {
                           <RadioGroupItem value={candidate.id} id={candidate.id} className="mt-1" />
                           <Label htmlFor={candidate.id} className="flex-1 cursor-pointer">
                             <div className="flex items-start gap-3">
-                              {candidate.imageUrl && (
-                                <img
-                                  src={candidate.imageUrl}
-                                  alt={candidate.name}
-                                  className="w-16 h-16 rounded-full object-cover"
-                                />
-                              )}
+                              <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center shrink-0">
+                                {candidate.imageUrl ? (
+                                  <img
+                                    src={candidate.imageUrl}
+                                    alt={candidate.name}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                      e.currentTarget.parentElement!.innerHTML = `<span class="text-xl font-bold text-gray-500">${candidate.name.charAt(0).toUpperCase()}</span>`;
+                                    }}
+                                  />
+                                ) : (
+                                  <span className="text-xl font-bold text-gray-500">{candidate.name.charAt(0).toUpperCase()}</span>
+                                )}
+                              </div>
                               <div className="flex-1">
                                 <p className="font-semibold text-gray-900">{candidate.name}</p>
                                 <p className="text-sm text-gray-600">{candidate.department}</p>

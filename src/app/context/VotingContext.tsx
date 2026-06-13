@@ -52,6 +52,8 @@ interface VotingContextType {
   castVote: (electionId: string, votes: { candidateId: string; position: string }[]) => Promise<{ success: boolean; transactionHash?: string; message: string }>;
   getResults: (electionId: string) => Promise<any>;
   getVoters: () => Promise<Voter[]>;
+  deleteVoter: (studentId: string) => Promise<{ success: boolean; message: string }>;
+  clearAllData: () => Promise<{ success: boolean; message: string }>;
 }
 
 const VotingContext = createContext<VotingContextType | undefined>(undefined);
@@ -341,6 +343,30 @@ export function VotingProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const deleteVoter = async (studentId: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await fetch(`${API_URL}/admin/voter/${studentId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${publicAnonKey}` },
+      });
+      return await response.json();
+    } catch (error) {
+      return { success: false, message: 'Failed to delete voter.' };
+    }
+  };
+
+  const clearAllData = async (): Promise<{ success: boolean; message: string }> => {
+    try {
+      const response = await fetch(`${API_URL}/admin/clear-all`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${publicAnonKey}` },
+      });
+      return await response.json();
+    } catch (error) {
+      return { success: false, message: 'Failed to clear data.' };
+    }
+  };
+
   return (
     <VotingContext.Provider value={{
       currentUser,
@@ -360,6 +386,8 @@ export function VotingProvider({ children }: { children: ReactNode }) {
       castVote,
       getResults,
       getVoters,
+      deleteVoter,
+      clearAllData,
     }}>
       {children}
     </VotingContext.Provider>
